@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Saldo en tránsito · Mariano Alvez</title>
+  <meta name="description" content="Probá qué pasa con el saldo de una billetera cuando el proveedor transfiere el dinero y la respuesta se pierde.">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <a href="#main" class="skip">Saltar al ensayo</a>
+  <header class="masthead">
+    <div class="wrap">
+      <div class="byline">
+        <span><i class="book-mark" aria-hidden="true"></i> Mariano Alvez <span class="discipline"> / Arquitectura de software</span></span>
+        <a id="code-link" href="./src/book.mjs">Ver código <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="intro">
+        <div>
+          <h1>Saldo en tránsito<span>.</span></h1>
+          <p id="scenario-question">¿Qué puede confirmar una billetera cuando el dinero sale de su sistema?</p>
+        </div>
+        <div class="pattern">
+          <strong>Saga orquestada con reserva de fondos</strong>
+          <ol aria-label="Orden de la operación">
+            <li>Reservar</li><li>Enviar</li><li>Resolver</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="wrap" tabindex="-1">
+    <noscript>Activá JavaScript para ejecutar SQLite en este navegador.</noscript>
+    <p id="status" role="status">Cargando el motor SQLite…</p>
+    <section id="experiment" hidden aria-label="Ensayo de transferencias">
+      <div class="controls">
+        <label>Escenario<select id="case"></select></label>
+        <label>Importe por orden<select id="amount"></select></label>
+        <span class="currency">Saldo inicial <strong>$100</strong> · pesos ficticios</span>
+      </div>
+
+      <div class="layout">
+        <article class="record" aria-label="Patrón elegido">
+          <div class="record-head"><strong id="scenario-name"></strong><span id="progress"></span></div>
+          <div id="narration" aria-live="polite" aria-atomic="true">
+            <h2 id="event"></h2>
+            <p id="detail"></p>
+          </div>
+          <div class="flow">
+            <section class="wallet" aria-label="Saldos locales">
+              <h2>Billetera</h2>
+              <dl>
+                <div><dt>Disponible</dt><dd id="available"></dd></div>
+                <div><dt>Reservado</dt><dd id="held"></dd></div>
+              </dl>
+            </section>
+            <section class="provider" aria-label="Registro independiente del proveedor">
+              <h2>Proveedor externo</h2>
+              <dl><div><dt>Enviado</dt><dd id="external"></dd></div></dl>
+              <p id="provider-status"></p>
+            </section>
+          </div>
+
+          <div class="nav">
+            <button id="prev" type="button">← Anterior</button>
+            <button id="next" type="button">Paso siguiente →</button>
+          </div>
+        </article>
+
+        <aside aria-labelledby="alternative">
+          <span class="label">Si cambiás el diseño</span>
+          <h2 id="alternative"></h2>
+          <p id="comparison"></p>
+          <div class="estimate">
+            <strong>Proyección de esta alternativa</strong>
+            <dl><dt>Disponible local</dt><dd id="alt-available"></dd><dt>Enviado afuera</dt><dd id="alt-external"></dd></dl>
+          </div>
+          <h3>Costo del patrón elegido</h3>
+          <p id="cost"></p>
+        </aside>
+      </div>
+
+      <section class="journal" aria-labelledby="journal-title">
+        <h2 id="journal-title">Diario de la billetera</h2>
+        <p id="outbox"></p>
+        <table aria-labelledby="journal-title">
+          <thead><tr><th scope="col">Movimiento</th><th scope="col">Desde → Hacia</th><th scope="col">Importe</th></tr></thead>
+          <tbody id="entries"></tbody>
+        </table>
+      </section>
+    </section>
+  </main>
+  <footer class="wrap">Simulación local · dos bases SQLite independientes · datos ficticios</footer>
+  <script src="./vendor/sql-wasm.js" defer></script>
+  <script type="module" src="./app.mjs"></script>
+</body>
+</html>
