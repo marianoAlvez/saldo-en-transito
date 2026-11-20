@@ -6,6 +6,8 @@ Una billetera tiene $100. Llegan dos transferencias de $80. ¿En qué momento pu
 
 Abrí **Respuesta perdida**. El proveedor ya envió $80 y la billetera muestra $20 disponibles y $80 reservados. Son los mismos $80 vistos desde dos sistemas. Pulsá **Consultar al proveedor** para ver cómo la billetera confirma la salida. Cada escenario abre en su incidente. **Anterior** permite revisar la reserva y el saldo de apertura.
 
+Compará ese cierre con **Reintento del mismo envío**. La consulta deja un pedido de envío y una consulta. El reintento deja dos pedidos de envío y cero consultas. En ambos casos el proveedor liquida una sola transferencia. Los contadores se leen del registro de operaciones del proveedor simulado.
+
 ## La decisión
 
 Primero se reserva saldo con una escritura condicional. En esa **misma transacción local** entran la intención de transferencia, el asiento de reserva y la orden de envío en una outbox. Después del commit, un worker usa la referencia persistida para enviar. El cliente puede conocer la orden aceptada mientras su liquidación sigue pendiente.

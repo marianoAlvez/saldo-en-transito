@@ -1,5 +1,5 @@
-import {initWallet, reserve, statement} from "./book.mjs";
-import {initRail, dispatch, received, reconcile, send} from "./rail.mjs";
+import {initWallet, reserve, resolve, statement} from "./book.mjs";
+import {activityCounts, initRail, dispatch, received, reconcile, send} from "./rail.mjs";
 
 export const amountsInCents = [4000, 6000, 8000, 9000, 10000];
 
@@ -47,7 +47,7 @@ export function simulate(open, name, amount = 8000) {
     const frames = [];
     function snapshot(phase, title, detail, comparison) {
       const receipts = rail.all("SELECT outcome FROM instructions ORDER BY ref").map(row => row.outcome);
-      frames.push({phase, title, detail, comparison, ...statement(wallet), external: received(rail), receipts});
+      frames.push({phase, title, detail, comparison, ...statement(wallet), external: received(rail), receipts, activity: activityCounts(rail)});
     }
     const pesos = n => "$" + n / 100;
     snapshot("opening", "Saldo de apertura", "La cuenta arranca con $100 disponibles. El proveedor todavía no recibió instrucciones.",
@@ -58,7 +58,7 @@ export function simulate(open, name, amount = 8000) {
       name === "race" ? "Antes de la reserva, el saldo visible para ambas órdenes podría seguir siendo $100." :
       name === "timeout" ? "Un bloqueo SQL puede ordenar escrituras locales. El proveedor tiene su propia transacción." :
       name === "crash" ? "Si el proceso solo recuerda en memoria que falta enviar, el débito queda sin trabajo recuperable." :
-      name === "repeat" ? "La orden del cliente ya tiene una referencia externa estable." :
+      name === "repeat" ? "Asignar una referencia nueva al reintentar haría que una misma orden pudiera llegar con dos identificadores." :
       "Marcarla como completada ahora adelantaría un resultado que el proveedor todavía no comunicó.");
     if (name === "race") {
       let other;
@@ -86,11 +86,11 @@ export function simulate(open, name, amount = 8000) {
         "Para reparar el débito huérfano habría que reconstruir la intención a partir de otra evidencia.");
     } else if (name === "decline") {
       const instruction = wallet.one("SELECT * FROM transfers WHERE id=?", [id]);
-      send(rail, instruction, "declined");
+      const rejection = send(rail, instruction, "declined");
       snapshot("incident", "El proveedor confirmó el rechazo",
         "El proveedor registró un rechazo definitivo y envió $0. Los " + pesos(amount) + " siguen reservados hasta que la billetera asiente la liberación.",
         "Si el débito se diera por definitivo al recibir la orden, el cliente seguiría con " + pesos(10000 - amount) + " disponibles.");
-      reconcile(wallet, rail, id);
+      resolve(wallet, id, rejection);
       snapshot("closed", "El disponible vuelve a $100", "Un asiento de liberación devuelve " + pesos(amount) + " al disponible. La reserva original queda en el diario.",
         "Con un débito definitivo sin compensación, la persona habría perdido " + pesos(amount) + " de disponible por un pago que no salió.");
     } else if (name === "timeout") {

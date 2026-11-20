@@ -71,6 +71,9 @@ try {
         await page.getByRole("button", {name:expected.action + " →",exact:true}).click();
         const admittedOrders = name === "race" && 2 * amount <= 100 ? 2 : 1;
         const sent = name === "decline" ? 0 : amount * admittedOrders;
+        const attempts = name === "repeat" ? 2 : admittedOrders;
+        const lookups = name === "timeout" ? 1 : 0;
+        assert.equal(await page.locator("#provider-activity").innerText(), "Pedidos de envío: " + attempts + " · Consultas: " + lookups);
         assert.equal(await page.locator("#available").textContent(), "$" + (100 - sent));
         assert.equal(await page.locator("#external").textContent(), "$" + sent);
         assert.equal(await page.locator("#held").textContent(), "$0");

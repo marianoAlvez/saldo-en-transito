@@ -83,6 +83,7 @@ button:disabled { color: #70766f; border-color: var(--rule); background: #f4f5f1
 .record-head strong { font-size: .97rem; }
 #narration { margin-top: .9rem; }
 #provider-status { margin-top: .6rem; font-size: .82rem; font-weight: 600; }
+#provider-activity { margin-top: .18rem; font-size: .79rem; }
 #progress, .label { font: .78rem/1.5 var(--mono); color: var(--muted); }
 .flow { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); margin-block: 1.1rem 1.3rem; }
 .flow section { padding: clamp(.75rem, 2vw, 1.2rem); }

@@ -5,12 +5,17 @@ export function initRail(db) {
   db.exec(`CREATE TABLE instructions (
     ref TEXT PRIMARY KEY, destination TEXT NOT NULL, amount INTEGER NOT NULL CHECK(amount > 0),
     outcome TEXT NOT NULL CHECK(outcome IN ('settled','declined'))
+  ) STRICT;
+  CREATE TABLE activity (
+    seq INTEGER PRIMARY KEY, ref TEXT NOT NULL,
+    operation TEXT NOT NULL CHECK(operation IN ('send','lookup'))
   ) STRICT;`);
 }
 
 export function send(rail, order, response = "settled") {
   if (!["settled", "declined", "lose-reply"].includes(response)) throw new Error("modo desconocido");
   const result = atomic(rail, () => {
+    rail.run("INSERT INTO activity(ref,operation) VALUES (?,'send')", [order.id]);
     const old = rail.one("SELECT * FROM instructions WHERE ref=?", [order.id]);
     if (old) {
       if (old.amount !== order.amount || old.destination !== order.destination) throw new Error("referencia incompatible");
@@ -34,11 +39,20 @@ export function dispatch(wallet, rail, id, response) {
 }
 
 export function reconcile(wallet, rail, id) {
-  const receipt = rail.one("SELECT outcome FROM instructions WHERE ref=?", [id]);
+  const receipt = atomic(rail, () => {
+    rail.run("INSERT INTO activity(ref,operation) VALUES (?,'lookup')", [id]);
+    return rail.one("SELECT outcome FROM instructions WHERE ref=?", [id]);
+  });
   if (receipt) resolve(wallet, id, receipt.outcome);
   return receipt?.outcome ?? "unknown";
 }
 
 export function received(rail) {
   return rail.one("SELECT COALESCE(SUM(amount),0) AS total FROM instructions WHERE outcome='settled'").total;
+}
+
+export function activityCounts(rail) {
+  const row = rail.one(`SELECT COUNT(*) FILTER (WHERE operation='send') AS sends,
+    COUNT(*) FILTER (WHERE operation='lookup') AS lookups FROM activity`);
+  return {sends: row.sends, lookups: row.lookups};
 }

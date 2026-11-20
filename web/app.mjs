@@ -30,6 +30,7 @@ function render() {
   else if (row.receipts.length === 1) receipt = "1 envío liquidado";
   else if (row.receipts.length > 1) receipt = row.receipts.length + " envíos liquidados";
   el("provider-status").textContent = receipt;
+  el("provider-activity").textContent = "Pedidos de envío: " + row.activity.sends + " · Consultas: " + row.activity.lookups;
   el("alternative").textContent = config.alternative;
   el("comparison").textContent = row.comparison;
   const alternative = alternativeBalances(el("case").value, step, Number(el("amount").value) * 100);
